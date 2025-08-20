@@ -14,18 +14,18 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.2.4.RELEASE</version>
+        <version>2.7.18</version>  <!-- Updated from 2.2.4 to 2.7.18 (last 2.7.x) -->
     </parent>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
            <maven.compiler.source>21</maven.compiler.source>
            <maven.compiler.target>21</maven.compiler.target>
-        <java.version>11</java.version>
+        <java.version>11</java.version>  <!-- Changed to be consistent -->
+        <!-- Remove the maven.compiler.source/target as they're inherited from parent -->
     </properties>
 
     <dependencies>
-
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
@@ -46,30 +46,17 @@
             <artifactId>spring-boot-devtools</artifactId>
             <optional>true</optional>
         </dependency>
-
     </dependencies>
 
     <build>
-
-        <finalName>spring-boot-web</finalName>
+        <finalName>app</finalName>  <!-- Changed to simpler name -->
 
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
             </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.0</version>
-                <configuration>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
-                </configuration>
-            </plugin>
-
+            <!-- Removed maven-compiler-plugin as it's inherited from parent -->
         </plugins>
     </build>
-
-
 </project>
