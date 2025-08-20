@@ -1,75 +1,85 @@
 pipeline {
     agent any
-    
-    tools {
-        jdk 'jdk11'
+    tools{
+        jdk 'Java21'
         maven 'maven3'
     }
-    
+     
     environment{
-        SCANNER_HOME= tool 'sonar-scanner'
+        SCANNER_HOME = tool 'sonar-scanner'
     }
-
     stages {
-        stage('Git Checkout ') {
+        stage('Git Checkout') {
             steps {
-                git branch: 'main', changelog: false, poll: false, url: 'https://github.com/jaiswaladi246/SpringBoot-WebApplication.git'
-            }
+                git branch: 'main', changelog: false, poll: false, url: 'https://github.com/Cloudylm10/Jenkins-CICD-WebApp.git'            }
         }
         
         stage('Code Compile') {
             steps {
-                    sh "mvn compile"
+                sh "mvn compile"
             }
         }
         
-        stage('Run Test Cases') {
+         stage('Run Test Cases') {
             steps {
-                    sh "mvn test"
+                sh "mvn test"
             }
         }
         
-        stage('Sonarqube Analysis') {
+        stage('Build Jar') {
             steps {
-                    withSonarQubeEnv('sonar-server') {
-                        sh ''' $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=Java-WebApp \
-                        -Dsonar.java.binaries=. \
-                        -Dsonar.projectKey=Java-WebApp '''
-    
+                sh "mvn clean package -DskipTests"
+            }
+        }
+
+        
+         stage('SonarQube Analysis') {
+            steps {
+                script {
+                    withSonarQubeEnv('sonar-server') {   // must be inside steps/script
+                        sh '''
+                            $SCANNER_HOME/bin/sonar-scanner \
+                            -Dsonar.projectName=JavaWebApp \
+                            -Dsonar.projectKey=Java-WebApp \
+                            -Dsonar.java.binaries=target/
+                        '''
+                    }
                 }
             }
         }
         
-        stage('OWASP Dependency Check') {
+         stage('OWASP Dependency Check') {
             steps {
-                   dependencyCheck additionalArguments: '--scan ./   ', odcInstallation: 'DP'
-                   dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+                dependencyCheck additionalArguments: ' -scan ./  --format HTML', odcInstallation: 'DP-check'
+                dependencyCheckPublisher pattern: '**/dependency-check-report.xml'
+            }
+        }
+         stage('Docker Build & Push') {
+            steps {
+                script{
+                        withDockerRegistry(credentialsId: 'aba5182c-c628-4fd6-bd4c-418c70e33be4', toolName: 'docker') {
+                        sh "docker build -t webapp ."
+                        sh "docker tag webapp lubhitdocker/webapp:latest"
+                        sh "docker push lubhitdocker/webapp:latest"
+                    }
+                }
             }
         }
         
-        stage('Maven Build') {
-            steps {
-                    sh "mvn clean compile"
+       stage('Docker Image Scan') {
+          steps {
+            sh "trivy image --scanners vuln --no-progress lubhitdocker/webapp:latest"
             }
         }
         
-        stage('Docker Build & Push') {
+          stage('Docker Container') {
             steps {
-                   script {
-                       withDockerRegistry(credentialsId: 'b289dc43-2ede-4bd0-95e8-75ca26100d8d', toolName: 'docker') {
-                            sh "docker build -t webapp ."
-                            sh "docker tag webapp adijaiswal/webapp:latest"
-                            sh "docker push adijaiswal/webapp:latest "
-                        }
-                   } 
+               script{
+                   withDockerRegistry(credentialsId: 'aba5182c-c628-4fd6-bd4c-418c70e33be4', toolName: 'docker') {
+                       sh "docker run --name webapp -p 8081:8081 lubhitdocker/webapp:latest"
+                   }
+               }
             }
         }
-        
-        stage('Docker Image scan') {
-            steps {
-                    sh "trivy image adijaiswal/webapp:latest "
-            }
-        }
-        
     }
 }
