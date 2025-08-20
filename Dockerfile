@@ -1,7 +1,4 @@
-FROM alpine:3.18.6
-
-# Install OpenJDK 21 instead of 11
-RUN apk add --no-cache openjdk21
+FROM eclipse-temurin:21-jdk-jammy
 
 WORKDIR /opt/app
 
